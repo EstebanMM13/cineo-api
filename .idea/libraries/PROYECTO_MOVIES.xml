@@ -1,0 +1,14 @@
+<component name="libraryTable">
+  <library name="PROYECTO_MOVIES">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/movies/src/main/java" />
+      <root url="file://$PROJECT_DIR$/movies/src/test/java" />
+      <root url="file://$PROJECT_DIR$/service-registry/src/main/java" />
+      <root url="file://$PROJECT_DIR$/service-registry/src/test/java" />
+    </SOURCES>
+  </library>
+</component>
