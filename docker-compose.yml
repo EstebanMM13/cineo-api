@@ -12,7 +12,7 @@ services:
       - "3307:3306"
     volumes:
       - mysql-auth-data:/var/lib/mysql
-      - ./docker/init/init-auth.sql:/docker-entrypoint-initdb.d/init.sql
+
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
@@ -29,7 +29,7 @@ services:
       - "3308:3306"
     volumes:
       - mysql-movies-data:/var/lib/mysql
-      - ./docker/init/init-movies.sql:/docker-entrypoint-initdb.d/init.sql
+
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
