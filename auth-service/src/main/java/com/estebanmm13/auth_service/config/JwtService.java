@@ -71,9 +71,10 @@ public class JwtService {
         return getClaim(token, Claims::getExpiration);
     }
 
-    public String generateTokenWithRole(UserDetails userDetails, String role) {
+    public String generateTokenWithRole(UserDetails userDetails, String role, Long userId) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", role);
+        claims.put("userId", userId);
         return generateToken(claims, userDetails);
     }
 

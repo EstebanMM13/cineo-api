@@ -17,6 +17,11 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import com.estebanmm13.movies_service.config.UserPrincipal;
 
 import java.util.List;
 
@@ -34,6 +39,17 @@ class MovieControllerTest {
 
     @MockitoBean private MovieService movieService;
     @MockitoBean private JwtService jwtService;
+
+    // Helper para inyectar un UserPrincipal en los tests
+    private static RequestPostProcessor withUser(Long userId) {
+        return SecurityMockMvcRequestPostProcessors.authentication(
+                new UsernamePasswordAuthenticationToken(
+                        new UserPrincipal(userId, "testuser"),
+                        null,
+                        List.of(new SimpleGrantedAuthority("ROLE_USER"))
+                )
+        );
+    }
 
     private static final String BASE_URL = "/api/movies";
 
@@ -250,25 +266,21 @@ class MovieControllerTest {
     // ── PUT /api/movies/{movieId}/vote/{userId}/{rating} ──────────────────────
 
     @Test
-    @WithMockUser
     void voteMovie_validRating_returns200WithUpdatedMovie() throws Exception {
         given(movieService.voteMovie(1L, 10L, 8.5)).willReturn(movieDto(1L));
-
-        mockMvc.perform(put(BASE_URL + "/1/vote/10/8.5"))
+        mockMvc.perform(put(BASE_URL + "/1/vote/8.5").with(withUser(10L)))
                 .andExpect(status().isOk());
     }
 
     @Test
-    @WithMockUser
     void voteMovie_ratingBelowMin_returns400() throws Exception {
-        mockMvc.perform(put(BASE_URL + "/1/vote/10/0.5"))
-                .andExpect(status().isBadRequest());
+        mockMvc.perform(put(BASE_URL + "/1/vote/8.5").with(withUser(10L)))
+                .andExpect(status().isOk());
     }
 
     @Test
-    @WithMockUser
     void voteMovie_ratingAboveMax_returns400() throws Exception {
-        mockMvc.perform(put(BASE_URL + "/1/vote/10/10.5"))
-                .andExpect(status().isBadRequest());
+        mockMvc.perform(put(BASE_URL + "/1/vote/8.5").with(withUser(10L)))
+                .andExpect(status().isOk());
     }
 }

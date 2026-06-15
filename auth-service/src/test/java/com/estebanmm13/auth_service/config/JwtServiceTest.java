@@ -37,28 +37,32 @@ class JwtServiceTest {
 
     @Test
     void generateTokenWithRole_createsValidToken() {
-        String token = jwtService.generateTokenWithRole(user(Role.USER), "USER");
+        User u = user(Role.USER);
+        String token = jwtService.generateTokenWithRole(user(Role.USER), "USER",u.getId());
 
         assertThat(token).isNotBlank();
     }
 
     @Test
     void getUserName_returnsCorrectSubject() {
-        String token = jwtService.generateTokenWithRole(user(Role.USER), "USER");
+        User u = user(Role.USER);
+        String token = jwtService.generateTokenWithRole(user(Role.USER), "USER",u.getId());
 
         assertThat(jwtService.getUserName(token)).isEqualTo("testuser");
     }
 
     @Test
     void extractRole_returnsEmbeddedRole() {
-        String token = jwtService.generateTokenWithRole(user(Role.USER), "USER");
+        User u = user(Role.USER);
+        String token = jwtService.generateTokenWithRole(user(Role.USER), "USER",u.getId());
 
         assertThat(jwtService.extractRole(token)).isEqualTo("USER");
     }
 
     @Test
     void extractRole_adminToken_returnsAdmin() {
-        String token = jwtService.generateTokenWithRole(user(Role.ADMIN), "ADMIN");
+        User u = user(Role.USER);
+        String token = jwtService.generateTokenWithRole(user(Role.ADMIN), "ADMIN",u.getId());
 
         assertThat(jwtService.extractRole(token)).isEqualTo("ADMIN");
     }
@@ -66,7 +70,7 @@ class JwtServiceTest {
     @Test
     void validateToken_validToken_returnsTrue() {
         User u = user(Role.USER);
-        String token = jwtService.generateTokenWithRole(u, "USER");
+        String token = jwtService.generateTokenWithRole(u, "USER",u.getId());
 
         assertThat(jwtService.validateToken(token, u)).isTrue();
     }
@@ -75,14 +79,15 @@ class JwtServiceTest {
     void validateToken_differentUser_returnsFalse() {
         User owner = user(Role.USER);
         User other = User.builder().username("other").password("x").role(Role.USER).build();
-        String token = jwtService.generateTokenWithRole(owner, "USER");
+        String token = jwtService.generateTokenWithRole(owner, "USER",owner.getId());
 
         assertThat(jwtService.validateToken(token, other)).isFalse();
     }
 
     @Test
     void getAuthorities_userRole_returnsRoleUser() {
-        String token = jwtService.generateTokenWithRole(user(Role.USER), "USER");
+        User u = user(Role.USER);
+        String token = jwtService.generateTokenWithRole(user(Role.USER), "USER",u.getId());
 
         List<GrantedAuthority> authorities = jwtService.getAuthorities(token);
 
@@ -92,7 +97,8 @@ class JwtServiceTest {
 
     @Test
     void getAuthorities_adminRole_returnsRoleAdmin() {
-        String token = jwtService.generateTokenWithRole(user(Role.ADMIN), "ADMIN");
+        User u = user(Role.USER);
+        String token = jwtService.generateTokenWithRole(user(Role.ADMIN), "ADMIN",u.getId());
 
         List<GrantedAuthority> authorities = jwtService.getAuthorities(token);
 

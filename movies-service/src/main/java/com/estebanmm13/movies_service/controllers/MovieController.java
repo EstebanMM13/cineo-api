@@ -1,6 +1,7 @@
 package com.estebanmm13.movies_service.controllers;
 
 
+import com.estebanmm13.movies_service.config.UserPrincipal;
 import com.estebanmm13.movies_service.dtoModels.request.MovieRequestDTO;
 import com.estebanmm13.movies_service.dtoModels.response.MovieResponseDTO;
 import com.estebanmm13.movies_service.services.movie.MovieService;
@@ -14,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -93,10 +95,11 @@ public class MovieController {
     }
 
     @Operation(summary = "Vote a movie")
-    @PutMapping("/{movieId}/vote/{userId}/{rating}")
+    @PutMapping("/{movieId}/vote/{rating}")
     public ResponseEntity<MovieResponseDTO> voteMovie(@PathVariable Long movieId,
-                                                      @PathVariable Long userId,
-                                                      @PathVariable Double rating) {
+                                                      @PathVariable Double rating,
+                                                      @AuthenticationPrincipal UserPrincipal principal) {
+        Long userId = principal.userId();
         if (rating < 1.0 || rating > 10.0) {
             throw new IllegalArgumentException("Rating must be between 1.0 and 5.0");
         }

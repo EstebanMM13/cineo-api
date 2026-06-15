@@ -51,9 +51,11 @@ public class JwtFilter extends OncePerRequestFilter {
             List<GrantedAuthority> authorities = jwtService.getAuthorities(jwt);
             log.debug("Token válido para usuario: {}, roles: {}", username, authorities);
 
-            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                    username, null, authorities
-            );
+            Long userId = jwtService.extractUserId(jwt);
+            UserPrincipal principal = new UserPrincipal(userId, username);
+            UsernamePasswordAuthenticationToken authToken =
+                    new UsernamePasswordAuthenticationToken(principal, null, authorities);
+
             authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authToken);
         }

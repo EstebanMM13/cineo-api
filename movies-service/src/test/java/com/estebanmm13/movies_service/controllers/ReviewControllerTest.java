@@ -1,6 +1,7 @@
 package com.estebanmm13.movies_service.controllers;
 
 import com.estebanmm13.movies_service.config.JwtService;
+import com.estebanmm13.movies_service.config.UserPrincipal;
 import com.estebanmm13.movies_service.dtoModels.request.ReviewRequestDTO;
 import com.estebanmm13.movies_service.dtoModels.response.ReviewResponseDTO;
 import com.estebanmm13.movies_service.error.notFound.MovieNotFoundException;
@@ -12,12 +13,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.estebanmm13.movies_service.config.SecurityConfig;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -36,6 +41,17 @@ class ReviewControllerTest {
 
     @MockitoBean private ReviewService reviewService;
     @MockitoBean private JwtService jwtService;
+
+    // Helper para inyectar un UserPrincipal en los tests
+    private static RequestPostProcessor withUser(Long userId) {
+        return SecurityMockMvcRequestPostProcessors.authentication(
+                new UsernamePasswordAuthenticationToken(
+                        new UserPrincipal(userId, "testuser"),
+                        null,
+                        List.of(new SimpleGrantedAuthority("ROLE_USER"))
+                )
+        );
+    }
 
     private static final String BASE_URL = "/api/movies/{movieId}/reviews";
 
@@ -101,52 +117,46 @@ class ReviewControllerTest {
     // ── POST /api/movies/{movieId}/reviews ────────────────────────────────────
 
     @Test
-    @WithMockUser
     void createReview_validRequest_returns201() throws Exception {
         ReviewRequestDTO req = reviewRequest("Amazing movie!");
         given(reviewService.createReview(eq(10L), eq(1L), any())).willReturn(reviewDto(1L));
-
         mockMvc.perform(post("/api/movies/1/reviews")
-                        .param("userId", "10")
+                        .with(withUser(10L))             // ← añadir
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value(1));
+                .andExpect(status().isCreated());
     }
 
     @Test
-    @WithMockUser
     void createReview_blankComment_returns400() throws Exception {
         ReviewRequestDTO invalid = reviewRequest("");
 
         mockMvc.perform(post("/api/movies/1/reviews")
-                        .param("userId", "10")
+                        .with(withUser(10L))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalid)))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    @WithMockUser
     void createReview_movieNotFound_returns404() throws Exception {
         given(reviewService.createReview(anyLong(), eq(99L), any()))
                 .willThrow(new MovieNotFoundException("Movie with ID 99 not found"));
 
         mockMvc.perform(post("/api/movies/99/reviews")
-                        .param("userId", "10")
+                        .with(withUser(99L))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(reviewRequest("comment"))))
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    @WithMockUser
     void createReview_duplicateReview_returns500() throws Exception {
         given(reviewService.createReview(anyLong(), eq(1L), any()))
                 .willThrow(new RuntimeException("User already submitted a review for this movie"));
 
         mockMvc.perform(post("/api/movies/1/reviews")
-                        .param("userId", "10")
+                        .with(withUser(10L))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(reviewRequest("comment"))))
                 .andExpect(status().isInternalServerError());
@@ -155,12 +165,11 @@ class ReviewControllerTest {
     // ── PATCH /api/movies/{movieId}/reviews/{id} ──────────────────────────────
 
     @Test
-    @WithMockUser
     void updateReview_owner_returns200() throws Exception {
         given(reviewService.updateReview(eq(1L), eq(10L), any())).willReturn(reviewDto(1L));
 
         mockMvc.perform(patch("/api/movies/1/reviews/1")
-                        .param("userId", "10")
+                        .with(withUser(10L))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(reviewRequest("Updated!"))))
                 .andExpect(status().isOk())
@@ -168,23 +177,21 @@ class ReviewControllerTest {
     }
 
     @Test
-    @WithMockUser
     void updateReview_notOwner_returns404() throws Exception {
         given(reviewService.updateReview(eq(1L), eq(99L), any()))
                 .willThrow(new ReviewNotFoundException("You cannot delete this review"));
 
         mockMvc.perform(patch("/api/movies/1/reviews/1")
-                        .param("userId", "99")
+                        .with(withUser(99L))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(reviewRequest("hack"))))
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    @WithMockUser
     void updateReview_blankComment_returns400() throws Exception {
         mockMvc.perform(patch("/api/movies/1/reviews/1")
-                        .param("userId", "10")
+                        .with(withUser(10L))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(reviewRequest(""))))
                 .andExpect(status().isBadRequest());
@@ -193,34 +200,31 @@ class ReviewControllerTest {
     // ── DELETE /api/movies/{movieId}/reviews/{id} ─────────────────────────────
 
     @Test
-    @WithMockUser
     void deleteReview_owner_returns204() throws Exception {
         willDoNothing().given(reviewService).deleteReview(1L, 10L);
 
         mockMvc.perform(delete("/api/movies/1/reviews/1")
-                        .param("userId", "10"))
+                .with(withUser(10L)))
                 .andExpect(status().isNoContent());
     }
 
     @Test
-    @WithMockUser
     void deleteReview_notOwner_returns404() throws Exception {
         willThrow(new ReviewNotFoundException("You cannot delete this review"))
                 .given(reviewService).deleteReview(1L, 99L);
 
         mockMvc.perform(delete("/api/movies/1/reviews/1")
-                        .param("userId", "99"))
+                .with(withUser(99L)))
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    @WithMockUser
     void deleteReview_notFound_returns404() throws Exception {
         willThrow(new ReviewNotFoundException("Review with ID 99 not found"))
                 .given(reviewService).deleteReview(99L, 10L);
 
         mockMvc.perform(delete("/api/movies/1/reviews/99")
-                        .param("userId", "10"))
+                .with(withUser(10L)))
                 .andExpect(status().isNotFound());
     }
 

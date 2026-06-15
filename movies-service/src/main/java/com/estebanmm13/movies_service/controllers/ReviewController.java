@@ -1,6 +1,7 @@
 package com.estebanmm13.movies_service.controllers;
 
 
+import com.estebanmm13.movies_service.config.UserPrincipal;
 import com.estebanmm13.movies_service.dtoModels.request.ReviewRequestDTO;
 import com.estebanmm13.movies_service.dtoModels.response.ReviewResponseDTO;
 import com.estebanmm13.movies_service.error.dto.ResponseError;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -84,7 +86,8 @@ public class ReviewController {
     public ResponseEntity<ReviewResponseDTO> createReview(
             @PathVariable Long movieId,
             @Valid @RequestBody ReviewRequestDTO dto,
-            @RequestParam Long userId) {   // ← ADDED
+            @AuthenticationPrincipal UserPrincipal principal) {
+        Long userId = principal.userId();
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(reviewService.createReview(userId, movieId, dto));
     }
@@ -104,7 +107,8 @@ public class ReviewController {
             @PathVariable Long movieId,
             @PathVariable Long id,
             @Valid @RequestBody ReviewRequestDTO dto,
-            @RequestParam Long userId) {   // ← ADDED
+            @AuthenticationPrincipal UserPrincipal principal) {
+        Long userId = principal.userId();
         return ResponseEntity.ok(reviewService.updateReview(id, userId, dto));
     }
 
@@ -122,7 +126,8 @@ public class ReviewController {
     public ResponseEntity<Void> deleteReview(
             @PathVariable Long movieId,
             @PathVariable Long id,
-            @RequestParam Long userId) {   // ← ADDED
+            @AuthenticationPrincipal UserPrincipal principal) {
+        Long userId = principal.userId();// ← ADDED
         reviewService.deleteReview(id, userId);
         return ResponseEntity.noContent().build();
     }

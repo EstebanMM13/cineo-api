@@ -65,7 +65,7 @@ class AuthServiceImplTest {
         given(userRepository.existsByUsername(req.getUsername())).willReturn(false);
         given(passwordEncoder.encode(req.getPassword())).willReturn("$2a$10$encoded");
         given(userRepository.save(any(User.class))).willReturn(saved);
-        given(jwtService.generateTokenWithRole(saved, "USER")).willReturn("jwt-token");
+        given(jwtService.generateTokenWithRole(saved, "USER", 1L)).willReturn("jwt-token");
 
         AuthResponse response = authService.register(req);
 
@@ -86,7 +86,7 @@ class AuthServiceImplTest {
             assertThat(u.getRole()).isEqualTo(Role.USER);
             return saved;
         });
-        given(jwtService.generateTokenWithRole(any(), any())).willReturn("token");
+        given(jwtService.generateTokenWithRole(any(), any(),any())).willReturn("token");
 
         authService.register(req);
     }
@@ -125,7 +125,7 @@ class AuthServiceImplTest {
         given(userRepository.existsByUsername(any())).willReturn(false);
         given(passwordEncoder.encode("secret123")).willReturn("$2a$10$hashed");
         given(userRepository.save(any(User.class))).willReturn(saved);
-        given(jwtService.generateTokenWithRole(any(), any())).willReturn("token");
+        given(jwtService.generateTokenWithRole(any(),any(), any())).willReturn("token");
 
         authService.register(req);
 
@@ -140,7 +140,7 @@ class AuthServiceImplTest {
         User user = savedUser();
 
         given(userRepository.findUserByUsername("johndoe")).willReturn(Optional.of(user));
-        given(jwtService.generateTokenWithRole(user, "USER")).willReturn("jwt-token");
+        given(jwtService.generateTokenWithRole(user, "USER", 1L)).willReturn("jwt-token");
 
         AuthResponse response = authService.authenticate(req);
 
@@ -164,7 +164,7 @@ class AuthServiceImplTest {
         User user = savedUser();
 
         given(userRepository.findUserByUsername("johndoe")).willReturn(Optional.of(user));
-        given(jwtService.generateTokenWithRole(any(), any())).willReturn("token");
+        given(jwtService.generateTokenWithRole(any(), any(),any())).willReturn("token");
 
         authService.authenticate(req);
 
