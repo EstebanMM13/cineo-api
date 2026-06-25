@@ -36,6 +36,17 @@ services:
       timeout: 5s
       retries: 5
 
+  redis:
+    image: redis:7-alpine
+    container_name: movies-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   # ==================== INFRAESTRUCTURA ====================
 
   service-registry:
@@ -87,6 +98,12 @@ services:
         condition: service_healthy
       config-server:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8081/actuator/health"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   movies-service:
     image: estebanmm13/movies-service:latest
@@ -100,11 +117,21 @@ services:
       DB_USER: root
       DB_PASS: 1234
       JWT_SECRET: 2da08e8ee264a149413ce46abebbd566b4c8bbb019b37708ed9d77f8511ac7bf
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
     depends_on:
       mysql-movies:
         condition: service_healthy
       config-server:
         condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8082/actuator/health"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   api-gateway:
     image: estebanmm13/api-gateway:latest
@@ -120,6 +147,37 @@ services:
       config-server:
         condition: service_healthy
 
+  # ==================== OBSERVABILIDAD ====================
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: movies-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    depends_on:
+      auth-service:
+        condition: service_healthy
+      movies-service:
+        condition: service_healthy
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: movies-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: false
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+    depends_on:
+      - prometheus
+
 volumes:
   mysql-auth-data:
   mysql-movies-data:
+  grafana-data:

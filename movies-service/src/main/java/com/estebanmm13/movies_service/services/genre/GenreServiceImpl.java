@@ -1,11 +1,16 @@
 package com.estebanmm13.movies_service.services.genre;
 
 
+import com.estebanmm13.movies_service.config.CacheConfig;
 import com.estebanmm13.movies_service.dtoModels.response.GenreResponseDTO;
 import com.estebanmm13.movies_service.error.notFound.GenreNotFoundException;
 import com.estebanmm13.movies_service.mapper.GenreMapper;
 import com.estebanmm13.movies_service.models.Genre;
 import com.estebanmm13.movies_service.repositories.GenreRepository;
+import com.estebanmm13.movies_service.support.RestPage;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -16,32 +21,31 @@ public class GenreServiceImpl implements GenreService {
     private static final String NOT_FOUND_BY_ID = "Genre not found with id: %d";
     private static final String NOT_FOUND_BY_NAME = "Genre not found with name: %s";
 
-    private final GenreRepository genreRepository; // Corregido el nombre del campo
+    private final GenreRepository genreRepository;
     private final GenreMapper genreMapper;
 
-    // Constructor injection
     public GenreServiceImpl(GenreRepository genreRepository, GenreMapper genreMapper) {
         this.genreRepository = genreRepository;
         this.genreMapper = genreMapper;
     }
 
     @Override
+    @Cacheable(value = CacheConfig.CACHE_GENRES, key = "#pageable.pageNumber + '-' + #pageable.pageSize")
     public Page<GenreResponseDTO> findAllGenres(Pageable pageable) {
-        return genreRepository.findAll(pageable)
-                .map(genreMapper::toResponseDTO);
+        return new RestPage<>(genreRepository.findAll(pageable).map(genreMapper::toResponseDTO));
     }
 
     @Override
+    @Cacheable(value = CacheConfig.CACHE_GENRE, key = "#id")
     public GenreResponseDTO findGenreById(Long id) {
         Genre genre = genreRepository.findById(id)
                 .orElseThrow(() -> new GenreNotFoundException(String.format(NOT_FOUND_BY_ID, id)));
         return genreMapper.toResponseDTO(genre);
-
     }
 
     @Override
+    @CacheEvict(value = CacheConfig.CACHE_GENRES, allEntries = true)
     public Genre createGenre(Genre genre) {
-        // Podríamos añadir validación para evitar duplicados
         if (genreRepository.existsByNameIgnoreCase(genre.getName())) {
             throw new IllegalArgumentException("Genre already exists with name: " + genre.getName());
         }
@@ -49,11 +53,14 @@ public class GenreServiceImpl implements GenreService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = CacheConfig.CACHE_GENRE, key = "#id"),
+            @CacheEvict(value = CacheConfig.CACHE_GENRES, allEntries = true)
+    })
     public Genre updateGenre(Long id, Genre genre) {
         Genre existingGenre = genreRepository.findById(id)
                 .orElseThrow(() -> new GenreNotFoundException(String.format(NOT_FOUND_BY_ID, id)));
 
-        // Si está cambiando el nombre, verificar que no exista otro con ese nombre
         if (!existingGenre.getName().equalsIgnoreCase(genre.getName()) &&
                 genreRepository.existsByNameIgnoreCase(genre.getName())) {
             throw new IllegalArgumentException("Another genre already exists with name: " + genre.getName());
@@ -64,6 +71,10 @@ public class GenreServiceImpl implements GenreService {
     }
 
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = CacheConfig.CACHE_GENRE, key = "#id"),
+            @CacheEvict(value = CacheConfig.CACHE_GENRES, allEntries = true)
+    })
     public void deleteGenre(Long id) {
         if (!genreRepository.existsById(id)) {
             throw new GenreNotFoundException(String.format(NOT_FOUND_BY_ID, id));
@@ -80,7 +91,6 @@ public class GenreServiceImpl implements GenreService {
                 .map(genreMapper::toResponseDTO);
     }
 
-    // Método adicional útil para búsquedas exactas
     @Override
     public GenreResponseDTO findGenreByExactName(String name) {
         Genre genre = genreRepository.findByNameIgnoreCase(name)

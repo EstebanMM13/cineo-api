@@ -1,6 +1,7 @@
 package com.estebanmm13.movies_service.services.movie;
 
 
+import com.estebanmm13.movies_service.config.CacheConfig;
 import com.estebanmm13.movies_service.dtoModels.request.MovieRequestDTO;
 import com.estebanmm13.movies_service.dtoModels.response.MovieResponseDTO;
 import com.estebanmm13.movies_service.error.notFound.DuplicateVoteException;
@@ -14,6 +15,8 @@ import com.estebanmm13.movies_service.repositories.MovieRepository;
 import com.estebanmm13.movies_service.repositories.VoteRepository;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -32,7 +35,6 @@ public class MovieServiceImpl implements MovieService {
     private final VoteRepository voteRepository;
     private final MovieMapper movieMapper;
 
-    // Constructor injection
     public MovieServiceImpl(MovieRepository movieRepository,
                             GenreRepository genreRepository,
                             VoteRepository voteRepository,
@@ -51,6 +53,7 @@ public class MovieServiceImpl implements MovieService {
     }
 
     @Override
+    @Cacheable(value = CacheConfig.CACHE_MOVIE, key = "#id")
     public MovieResponseDTO findMovieById(Long id) {
         log.debug("Finding movie by id: {}", id);
         Movie movie = movieRepository.findById(id)
@@ -62,7 +65,6 @@ public class MovieServiceImpl implements MovieService {
     public MovieResponseDTO createMovie(MovieRequestDTO dto) {
         log.info("Creating new movie with title: {}", dto.getTitle());
         Movie movie = movieMapper.toEntity(dto);
-        // Asignar géneros si vienen IDs
         if (dto.getGenreIds() != null && !dto.getGenreIds().isEmpty()) {
             List<Genre> genres = genreRepository.findAllById(dto.getGenreIds());
             movie.setGenres(genres);
@@ -75,11 +77,11 @@ public class MovieServiceImpl implements MovieService {
     }
 
     @Override
+    @CacheEvict(value = CacheConfig.CACHE_MOVIE, key = "#id")
     public MovieResponseDTO updateMovie(Long id, MovieRequestDTO dto) {
         Movie existing = movieRepository.findById(id)
                 .orElseThrow(() -> new MovieNotFoundException("Movie not found with id: " + id));
         movieMapper.updateEntity(existing, dto);
-        // Actualizar géneros si se proporcionan
         if (dto.getGenreIds() != null) {
             List<Genre> genres = genreRepository.findAllById(dto.getGenreIds());
             existing.setGenres(genres);
@@ -89,6 +91,7 @@ public class MovieServiceImpl implements MovieService {
     }
 
     @Override
+    @CacheEvict(value = CacheConfig.CACHE_MOVIE, key = "#id")
     public void deleteMovie(Long id) {
         log.warn("Attempt to delete non-existent movie with id: {}", id);
         Movie movie = movieRepository.findById(id)
@@ -98,6 +101,7 @@ public class MovieServiceImpl implements MovieService {
     }
 
     @Override
+    @CacheEvict(value = CacheConfig.CACHE_MOVIE, key = "#movieId")
     public MovieResponseDTO voteMovie(Long movieId, Long userId, Double rating) {
         Movie movie = movieRepository.findById(movieId)
                 .orElseThrow(() -> new MovieNotFoundException("Movie not found with id: " + movieId));
@@ -114,7 +118,6 @@ public class MovieServiceImpl implements MovieService {
                 .build();
         voteRepository.save(vote);
 
-        // Actualizar rating promedio y número de votos
         double totalRating = movie.getRating() * movie.getVotes() + rating;
         int totalVotes = movie.getVotes() + 1;
         movie.setVotes(totalVotes);

@@ -1,4 +1,12 @@
 spring:
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+  cache:
+    type: redis
+    redis:
+      time-to-live: 600000        # 10 min por defecto
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: ${DB_MOVIES_URL:jdbc:mysql://localhost:3306/movies_db?useSSL=false&allowPublicKeyRetrieval=true}
@@ -26,6 +34,18 @@ logging:
     org.hibernate: ERROR
     org.springframework: ERROR
     org.springframework.web: INFO
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    tags:
+      application: movies-service
 
 resilience4j:
   circuitbreaker:
