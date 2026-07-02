@@ -137,6 +137,20 @@ public class MovieController {
         return ResponseEntity.ok(movieService.voteMovie(movieId, userId, rating));
     }
 
+    @Operation(summary = "Check vote status", description = "Returns whether the authenticated user has already voted for this movie")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Vote status retrieved successfully"),
+            @ApiResponse(responseCode = "404", description = "Movie not found",
+                    content = @Content(schema = @Schema(implementation = ResponseError.class)))
+    })
+    @GetMapping("/{movieId}/voted")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Boolean> getVoteStatus(
+            @Parameter(description = "Movie ID", required = true) @PathVariable Long movieId,
+            @AuthenticationPrincipal UserPrincipal principal) {
+        return ResponseEntity.ok(movieService.hasUserVoted(movieId, principal.userId()));
+    }
+
     @Operation(summary = "Find movies by genre", description = "Filter paginated movies by genre name")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Movies found"),

@@ -1,7 +1,6 @@
 package com.estebanmm13.movies_service.services.movie;
 
 
-import com.estebanmm13.movies_service.config.CacheConfig;
 import com.estebanmm13.movies_service.dtoModels.request.MovieRequestDTO;
 import com.estebanmm13.movies_service.dtoModels.response.MovieResponseDTO;
 import com.estebanmm13.movies_service.error.notFound.DuplicateVoteException;
@@ -15,8 +14,6 @@ import com.estebanmm13.movies_service.repositories.MovieRepository;
 import com.estebanmm13.movies_service.repositories.VoteRepository;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -53,7 +50,6 @@ public class MovieServiceImpl implements MovieService {
     }
 
     @Override
-    @Cacheable(value = CacheConfig.CACHE_MOVIE, key = "#id")
     public MovieResponseDTO findMovieById(Long id) {
         log.debug("Finding movie by id: {}", id);
         Movie movie = movieRepository.findById(id)
@@ -77,7 +73,6 @@ public class MovieServiceImpl implements MovieService {
     }
 
     @Override
-    @CacheEvict(value = CacheConfig.CACHE_MOVIE, key = "#id")
     public MovieResponseDTO updateMovie(Long id, MovieRequestDTO dto) {
         Movie existing = movieRepository.findById(id)
                 .orElseThrow(() -> new MovieNotFoundException("Movie not found with id: " + id));
@@ -91,7 +86,6 @@ public class MovieServiceImpl implements MovieService {
     }
 
     @Override
-    @CacheEvict(value = CacheConfig.CACHE_MOVIE, key = "#id")
     public void deleteMovie(Long id) {
         log.warn("Attempt to delete non-existent movie with id: {}", id);
         Movie movie = movieRepository.findById(id)
@@ -101,7 +95,6 @@ public class MovieServiceImpl implements MovieService {
     }
 
     @Override
-    @CacheEvict(value = CacheConfig.CACHE_MOVIE, key = "#movieId")
     public MovieResponseDTO voteMovie(Long movieId, Long userId, Double rating) {
         Movie movie = movieRepository.findById(movieId)
                 .orElseThrow(() -> new MovieNotFoundException("Movie not found with id: " + movieId));
@@ -125,6 +118,14 @@ public class MovieServiceImpl implements MovieService {
 
         Movie updatedMovie = movieRepository.save(movie);
         return movieMapper.toResponseDTO(updatedMovie);
+    }
+
+    @Override
+    public boolean hasUserVoted(Long movieId, Long userId) {
+        if (!movieRepository.existsById(movieId)) {
+            throw new MovieNotFoundException("Movie not found with id: " + movieId);
+        }
+        return voteRepository.existsByUserIdAndMovieId(userId, movieId);
     }
 
     @Override

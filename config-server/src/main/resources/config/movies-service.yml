@@ -30,7 +30,7 @@ logging:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} - %logger{36} - [%X{correlationId}] - %msg%n"
   level:
     root: WARN
-    com.estebanmm13.auth_service: DEBUG
+    com.estebanmm13.movies_service: DEBUG
     org.hibernate: ERROR
     org.springframework: ERROR
     org.springframework.web: INFO

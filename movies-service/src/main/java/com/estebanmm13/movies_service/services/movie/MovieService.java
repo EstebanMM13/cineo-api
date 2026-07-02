@@ -21,6 +21,8 @@ public interface MovieService {
     // voteMovie puede seguir devolviendo MovieResponseDTO si quieres, o mantener Movie. Por ahora lo dejamos igual.
     MovieResponseDTO voteMovie(Long movieId, Long userId, Double rating);  // cambia el retorno a DTO
 
+    boolean hasUserVoted(Long movieId, Long userId);
+
     Page<MovieResponseDTO> findMovieByTitleContaining(String title, Pageable pageable);
 
     Page<MovieResponseDTO> findAllMoviesByGenre(String name, Pageable pageable);

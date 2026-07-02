@@ -21,8 +21,8 @@ public class ReviewResponseDTO {
     @Schema(description = "Review comment", example = "This movie is amazing!")
     private String comment;
 
-    @JsonFormat(pattern = "dd-MM-yyyy 'at' HH:mm")
-    @Schema(description = "Date and time of creation", example = "30-04-2025 at 12:34:56")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    @Schema(description = "Date and time of creation (ISO-8601)", example = "2025-04-30T12:34:56")
     private LocalDateTime createdAt;
 
     private Long userId;
