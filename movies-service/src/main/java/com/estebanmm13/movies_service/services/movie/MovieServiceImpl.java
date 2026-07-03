@@ -3,7 +3,7 @@ package com.estebanmm13.movies_service.services.movie;
 
 import com.estebanmm13.movies_service.dtoModels.request.MovieRequestDTO;
 import com.estebanmm13.movies_service.dtoModels.response.MovieResponseDTO;
-import com.estebanmm13.movies_service.error.notFound.DuplicateVoteException;
+import com.estebanmm13.movies_service.error.conflict.DuplicateVoteException;
 import com.estebanmm13.movies_service.error.notFound.MovieNotFoundException;
 import com.estebanmm13.movies_service.mapper.MovieMapper;
 import com.estebanmm13.movies_service.models.Genre;
@@ -18,7 +18,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,7 +43,7 @@ public class MovieServiceImpl implements MovieService {
 
     @Override
     public Page<MovieResponseDTO> findAllMovies(Pageable pageable) {
-        log.info("Petición para listar todas las películas");
+        log.info("Request to list all movies");
         return movieRepository.findAll(pageable)
                 .map(movieMapper::toResponseDTO);
     }
@@ -87,7 +86,6 @@ public class MovieServiceImpl implements MovieService {
 
     @Override
     public void deleteMovie(Long id) {
-        log.warn("Attempt to delete non-existent movie with id: {}", id);
         Movie movie = movieRepository.findById(id)
                 .orElseThrow(() -> new MovieNotFoundException("Movie not found with id: " + id));
         movieRepository.delete(movie);
@@ -107,7 +105,6 @@ public class MovieServiceImpl implements MovieService {
                 .movie(movie)
                 .userId(userId)
                 .rating(rating)
-                .votedAt(LocalDateTime.now())
                 .build();
         voteRepository.save(vote);
 

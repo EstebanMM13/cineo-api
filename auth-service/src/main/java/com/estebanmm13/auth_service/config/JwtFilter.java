@@ -49,16 +49,16 @@ public class JwtFilter extends OncePerRequestFilter {
         try {
             username = jwtService.getUserName(jwt);
         } catch (Exception e) {
-            log.warn("Token malformado para request: {}", request.getRequestURI());
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token malformado");
+            log.warn("Malformed token for request: {}", request.getRequestURI());
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Malformed token");
             return;
         }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            log.debug("Token valido para usuario: {}", username);
+            log.debug("Valid token for user: {}", username);
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
             if (jwtService.validateToken(jwt, userDetails)) {
-                // MODIFICADO: Usamos las autoridades explícitas del token JWT
+                // Use the explicit authorities carried in the JWT
                 List<GrantedAuthority> authorities = jwtService.getAuthorities(jwt);
 
                 // Log para debug (opcional)

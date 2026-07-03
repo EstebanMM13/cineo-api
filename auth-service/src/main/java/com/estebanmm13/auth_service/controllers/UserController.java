@@ -23,7 +23,7 @@ public class UserController {
     @GetMapping("/{id}/username")
     @Operation(summary = "Obtener username por ID (uso interno entre microservicios)")
     public ResponseEntity<String> getUsernameById(@PathVariable Long id) {
-        log.debug("Peticion interna - obteniendo username del usuario {}", id);
+        log.debug("Internal request - resolving username for user {}", id);
         String username = userService.findUserById(id).getUsername();
         return ResponseEntity.ok(username);
     }

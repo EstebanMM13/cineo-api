@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -31,5 +32,7 @@ public class Vote {
 
     private Double rating;
 
+    @CreationTimestamp
+    @Column(name = "voted_at", updatable = false)
     private LocalDateTime votedAt;
 }

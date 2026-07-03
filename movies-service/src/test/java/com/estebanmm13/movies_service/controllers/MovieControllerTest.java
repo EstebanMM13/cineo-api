@@ -267,7 +267,7 @@ class MovieControllerTest {
                 .andExpect(jsonPath("$.content").isArray());
     }
 
-    // ── PUT /api/movies/{movieId}/vote/{userId}/{rating} ──────────────────────
+    // ── PUT /api/movies/{movieId}/vote/{rating} ───────────────────────────────
 
     @Test
     void voteMovie_validRating_returns200WithUpdatedMovie() throws Exception {
@@ -278,13 +278,13 @@ class MovieControllerTest {
 
     @Test
     void voteMovie_ratingBelowMin_returns400() throws Exception {
-        mockMvc.perform(put(BASE_URL + "/1/vote/8.5").with(withUser(10L)))
-                .andExpect(status().isOk());
+        mockMvc.perform(put(BASE_URL + "/1/vote/0.5").with(withUser(10L)))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
     void voteMovie_ratingAboveMax_returns400() throws Exception {
-        mockMvc.perform(put(BASE_URL + "/1/vote/8.5").with(withUser(10L)))
-                .andExpect(status().isOk());
+        mockMvc.perform(put(BASE_URL + "/1/vote/11").with(withUser(10L)))
+                .andExpect(status().isBadRequest());
     }
 }

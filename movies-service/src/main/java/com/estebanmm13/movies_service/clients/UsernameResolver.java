@@ -24,7 +24,7 @@ public class UsernameResolver {
     }
 
     public String usernameFallback(Long userId, Exception ex) {
-        log.warn("Fallback activado para userId {}: {}", userId, ex.getMessage());
+        log.warn("Fallback triggered for userId {}: {}", userId, ex.getMessage());
         return UNKNOWN_USERNAME;
     }
 }

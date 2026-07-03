@@ -1,12 +1,13 @@
 package com.estebanmm13.movies_service.error;
 
-import com.estebanmm13.movies_service.error.notFound.DuplicateReviewException;
-import com.estebanmm13.movies_service.error.notFound.DuplicateVoteException;
+import com.estebanmm13.movies_service.error.conflict.DuplicateReviewException;
+import com.estebanmm13.movies_service.error.conflict.DuplicateVoteException;
 import com.estebanmm13.movies_service.error.notFound.GenreNotFoundException;
 import com.estebanmm13.movies_service.error.notFound.MovieNotFoundException;
 import com.estebanmm13.movies_service.error.notFound.ReviewNotFoundException;
-import com.estebanmm13.movies_service.error.notFound.UnauthorizedActionException;
+import com.estebanmm13.movies_service.error.forbidden.UnauthorizedActionException;
 import com.estebanmm13.movies_service.error.notFound.VoteNotFoundException;
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -67,6 +68,14 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, Object>> handleIllegal(IllegalArgumentException ex) {
         return buildError(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<Map<String, Object>> handleConstraintViolation(ConstraintViolationException ex) {
+        String message = ex.getConstraintViolations().stream()
+                .map(v -> v.getMessage())
+                .collect(Collectors.joining(", "));
+        return buildError(HttpStatus.BAD_REQUEST, message);
     }
 
     @ExceptionHandler(AccessDeniedException.class)

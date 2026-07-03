@@ -41,7 +41,7 @@ public class AdminController {
             @Parameter(description = "Field to sort by", example = "id") @RequestParam(defaultValue = "id") String sortBy,
             @Parameter(description = "Sort direction: asc or desc", example = "asc") @RequestParam(defaultValue = "asc") String direction) {
 
-        log.info("Admin - Obteniendo usuarios - página: {}, tamaño: {}", page, size);
+        log.info("Admin - Fetching users - page: {}, size: {}", page, size);
 
         Sort.Direction sortDirection = direction.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sortBy));
@@ -57,7 +57,7 @@ public class AdminController {
     })
     public ResponseEntity<UserResponseDTO> getUserById(
             @Parameter(description = "User ID", required = true) @PathVariable Long id) {
-        log.info("Admin - Obteniendo usuario con ID: {}", id);
+        log.info("Admin - Fetching user with ID: {}", id);
         return ResponseEntity.ok(userService.findUserById(id));
     }
 
@@ -69,9 +69,9 @@ public class AdminController {
     })
     public ResponseEntity<Void> deleteUser(
             @Parameter(description = "User ID", required = true) @PathVariable Long id) {
-        log.info("Admin - Eliminando usuario con ID: {}", id);
+        log.info("Admin - Deleting user with ID: {}", id);
         userService.deleteUser(id);
-        log.info("Usuario eliminado exitosamente: {}", id);
+        log.info("User deleted successfully: {}", id);
         return ResponseEntity.noContent().build();
     }
 
@@ -79,7 +79,7 @@ public class AdminController {
     @Operation(summary = "Get system stats", description = "Returns total, admin and regular user counts. Requires ADMIN role.")
     @ApiResponse(responseCode = "200", description = "Stats retrieved successfully")
     public ResponseEntity<SystemStats> getSystemStats() {
-        log.info("Admin - Obteniendo estadísticas del sistema");
+        log.info("Admin - Fetching system statistics");
 
         long totalUsers = userService.countUsers();
         long adminUsers = userService.countUsersByRole(Role.ADMIN);

@@ -1,4 +1,4 @@
-package com.estebanmm13.movies_service.error.notFound;
+package com.estebanmm13.movies_service.error.forbidden;
 
 public class UnauthorizedActionException extends RuntimeException {
 

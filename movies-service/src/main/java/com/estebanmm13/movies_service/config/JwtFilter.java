@@ -40,8 +40,8 @@ public class JwtFilter extends OncePerRequestFilter {
         String jwt = authHeader.substring(7);
 
         if (!jwtService.isTokenValid(jwt)) {
-            log.warn("Token inválido o expirado para request: {}", request.getRequestURI());
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token inválido o expirado");
+            log.warn("Invalid or expired token for request: {}", request.getRequestURI());
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid or expired token");
             return;
         }
 
@@ -49,7 +49,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             List<GrantedAuthority> authorities = jwtService.getAuthorities(jwt);
-            log.debug("Token válido para usuario: {}, roles: {}", username, authorities);
+            log.debug("Valid token for user: {}, roles: {}", username, authorities);
 
             Long userId = jwtService.extractUserId(jwt);
             UserPrincipal principal = new UserPrincipal(userId, username);
@@ -60,6 +60,6 @@ public class JwtFilter extends OncePerRequestFilter {
             SecurityContextHolder.getContext().setAuthentication(authToken);
         }
 
-        filterChain.doFilter(request, response); // ✅ solo una vez
+        filterChain.doFilter(request, response);
     }
 }

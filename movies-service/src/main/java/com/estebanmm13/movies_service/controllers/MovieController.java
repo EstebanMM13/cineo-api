@@ -14,16 +14,21 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import com.estebanmm13.movies_service.error.dto.ResponseError;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/movies")
+@Validated
 @Tag(name = "Movies", description = "Movie management endpoints")
 public class MovieController {
 
@@ -107,11 +112,9 @@ public class MovieController {
     })
     @GetMapping("/title")
     public ResponseEntity<Page<MovieResponseDTO>> findMovieByTitle(
-            @Parameter(description = "Title or partial title to search", required = true) @RequestParam String title,
+            @Parameter(description = "Title or partial title to search", required = true)
+            @RequestParam @NotBlank(message = "Title parameter is required") String title,
             @Parameter(description = "Pagination information") Pageable pageable) {
-        if (title == null || title.isBlank()) {
-            throw new IllegalArgumentException("Title parameter is required");
-        }
         return ResponseEntity.ok(movieService.findMovieByTitleContaining(title, pageable));
     }
 
@@ -128,12 +131,12 @@ public class MovieController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<MovieResponseDTO> voteMovie(
             @Parameter(description = "Movie ID", required = true) @PathVariable Long movieId,
-            @Parameter(description = "Rating value between 1.0 and 10.0", required = true) @PathVariable Double rating,
+            @Parameter(description = "Rating value between 1.0 and 10.0", required = true)
+            @PathVariable
+            @DecimalMin(value = "1.0", message = "Rating must be between 1.0 and 10.0")
+            @DecimalMax(value = "10.0", message = "Rating must be between 1.0 and 10.0") Double rating,
             @AuthenticationPrincipal UserPrincipal principal) {
         Long userId = principal.userId();
-        if (rating < 1.0 || rating > 10.0) {
-            throw new IllegalArgumentException("Rating must be between 1.0 and 10.0");
-        }
         return ResponseEntity.ok(movieService.voteMovie(movieId, userId, rating));
     }
 

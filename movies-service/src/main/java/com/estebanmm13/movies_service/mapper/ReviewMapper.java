@@ -7,8 +7,6 @@ import com.estebanmm13.movies_service.models.Movie;
 import com.estebanmm13.movies_service.models.Review;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
-
 @Component
 public class ReviewMapper {
 
@@ -30,7 +28,6 @@ public class ReviewMapper {
                 .comment(dto.getComment())
                 .userId(userId)
                 .movie(movie)
-                .createdAt(LocalDateTime.now())
                 .build();
     }
 }

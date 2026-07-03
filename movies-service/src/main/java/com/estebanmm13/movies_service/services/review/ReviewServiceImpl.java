@@ -19,8 +19,8 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.estebanmm13.movies_service.error.notFound.DuplicateReviewException;
-import com.estebanmm13.movies_service.error.notFound.UnauthorizedActionException;
+import com.estebanmm13.movies_service.error.conflict.DuplicateReviewException;
+import com.estebanmm13.movies_service.error.forbidden.UnauthorizedActionException;
 
 
 @Slf4j

@@ -31,17 +31,15 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthResponse register(RegisterRequest registerRequest) {
-        log.info("Registrando nuevo usuario con email: {} y usarname: {}",
+        log.info("Registering new user with email: {} and username: {}",
                 registerRequest.getEmail(), registerRequest.getUsername());
-        // 1. Verificar si el email ya existe (para evitar el error 403)
         if (userRepository.existsByEmail(registerRequest.getEmail())) {
-            log.warn("Intento de registro con email ya existente: {}", registerRequest.getEmail());
+            log.warn("Registration attempt with existing email: {}", registerRequest.getEmail());
             throw new DuplicateResourceException("User", "email", registerRequest.getEmail());
         }
 
-        // 2. Verificar si el username ya existe (opcional)
         if (userRepository.existsByUsername(registerRequest.getUsername())) {
-            log.warn("Intento de registro con username ya existente: {}",registerRequest.getUsername());
+            log.warn("Registration attempt with existing username: {}", registerRequest.getUsername());
             throw new DuplicateResourceException("User", "username", registerRequest.getUsername());
         }
 
@@ -54,13 +52,13 @@ public class AuthServiceImpl implements AuthService {
 
         User savedUser = userRepository.save(user);
         var jwtToken = jwtService.generateTokenWithRole(savedUser, savedUser.getRole().name(), savedUser.getId());
-        log.info("Usuario registrado con id: {}",savedUser.getId());
+        log.info("User registered with id: {}", savedUser.getId());
         return AuthResponse.builder().token(jwtToken).build();
     }
 
     @Override
     public AuthResponse authenticate(AuthenticationRequest authenticationRequest) {
-        log.debug("Autenticando usario: {}",authenticationRequest.getUsername());
+        log.debug("Authenticating user: {}", authenticationRequest.getUsername());
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -68,17 +66,16 @@ public class AuthServiceImpl implements AuthService {
                             authenticationRequest.getPassword()
                     ));
         } catch (BadCredentialsException e) {
-            log.warn("Credenciales invalidas para usuario: {}",authenticationRequest.getUsername());
-            // 3. Capturar error de credenciales y lanzar excepción personalizada
+            log.warn("Invalid credentials for user: {}", authenticationRequest.getUsername());
             throw new InvalidCredentialsException("User or password incorrect");
         }
 
         var user = userRepository.findUserByUsername(authenticationRequest.getUsername())
-                .orElseThrow(() -> new ResourceNotFoundException(  // ← Excepción personalizada
+                .orElseThrow(() -> new ResourceNotFoundException(
                         "User", "username", authenticationRequest.getUsername()
                 ));
 
-        log.info("Usuario autenticado con exito: {}",user.getUsername());
+        log.info("User authenticated successfully: {}", user.getUsername());
         var jwtToken = jwtService.generateTokenWithRole(user, user.getRole().name(),user.getId());
         return AuthResponse.builder().token(jwtToken).build();
     }

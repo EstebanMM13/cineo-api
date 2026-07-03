@@ -29,7 +29,7 @@ public class GlobalExceptionHandler {
         return buildError(HttpStatus.UNAUTHORIZED, ex.getMessage());
     }
 
-    @ExceptionHandler({ResourceNotFoundException.class, UserNotFoundException.class, MovieNotFoundException.class})
+    @ExceptionHandler({ResourceNotFoundException.class, UserNotFoundException.class})
     public ResponseEntity<Map<String, Object>> handleNotFound(RuntimeException ex) {
         log.warn("Resource not found: {}", ex.getMessage());
         return buildError(HttpStatus.NOT_FOUND, ex.getMessage());

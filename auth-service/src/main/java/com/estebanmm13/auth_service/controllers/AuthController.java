@@ -42,9 +42,9 @@ public class AuthController {
     public ResponseEntity<AuthResponse> register(
             @Parameter(description = "User registration data", required = true)
             @Valid @RequestBody RegisterRequest registerRequest) {
-        log.info("Solicitud de registro para usuario: {}", registerRequest.getUsername());
+        log.info("Registration request for user: {}", registerRequest.getUsername());
         AuthResponse response = authService.register(registerRequest);
-        log.info("Usario registrado exitosamente: {}", registerRequest.getUsername());
+        log.info("User registered successfully: {}", registerRequest.getUsername());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -61,9 +61,9 @@ public class AuthController {
     public ResponseEntity<AuthResponse> authenticate(
             @Parameter(description = "User credentials", required = true)
             @Valid @RequestBody AuthenticationRequest authenticationRequest) {
-        log.debug("Intento de login para usuario: {}",authenticationRequest.getUsername());
+        log.debug("Login attempt for user: {}", authenticationRequest.getUsername());
         AuthResponse response = authService.authenticate(authenticationRequest);
-        log.debug("Usuario auntenticado: {}",authenticationRequest.getUsername());
+        log.debug("User authenticated: {}", authenticationRequest.getUsername());
         return ResponseEntity.ok(response);
     }
 }
