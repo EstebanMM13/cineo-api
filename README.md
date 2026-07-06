@@ -26,6 +26,8 @@ The project includes a full **observability stack**: Prometheus scrapes metrics 
 
 The project follows **Domain-Driven Design** principles, separation of concerns and Spring Cloud best practices.
 
+The Angular frontend that consumes this API lives in a separate repo: [cineo-web](https://github.com/EstebanMM13/cineo-web).
+
 ---
 
 ## 🏗️ Architecture
@@ -356,7 +358,7 @@ cineo-api/
 - [x] Redis caching with TTL and cache eviction
 - [x] Prometheus + Grafana observability stack
 - [ ] Distributed Tracing with Zipkin
-- [ ] Angular frontend
+- [x] Angular frontend — see [cineo-web](https://github.com/EstebanMM13/cineo-web)
 - [ ] TMDB API integration
 
 ---
