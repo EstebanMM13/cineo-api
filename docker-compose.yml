@@ -145,6 +145,7 @@ services:
     environment:
       EUREKA_URL: http://service-registry:8761/eureka/
       CONFIG_SERVER_URL: http://config-server:8088
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:4200,http://192.168.1.55:4200}
       JAVA_OPTS: ${JAVA_OPTS:--Xmx384m -Xms192m}
     depends_on:
       service-registry:
